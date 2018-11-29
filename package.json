@@ -1,0 +1,25 @@
+{
+  "name": "cradlepoint_watcher",
+  "version": "1.0.0",
+  "description": "",
+  "main": "cradlepoint_watcher.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nathanlschneider/Cradlepoint_Watcher.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nathanlschneider/Cradlepoint_Watcher/issues"
+  },
+  "homepage": "https://github.com/nathanlschneider/Cradlepoint_Watcher#readme",
+  "dependencies": {
+    "express": "^4.16.3",
+    "express-ws": "^4.0.0",
+    "request": "^2.88.0",
+    "underscore": "^1.9.1"
+  }
+}
