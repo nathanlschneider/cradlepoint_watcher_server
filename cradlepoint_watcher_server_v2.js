@@ -3,6 +3,21 @@ todo:
     kill poll timers when connection closes
 */
 
+//mongodb declarations////
+const MongoClient = require('mongodb').MongoClient;
+const assert = require('assert');
+const url = 'mongodb://inspire.gr.mhgi.net:27017';
+const dbName = 'cradlepointwatcher';
+const client = new MongoClient(url);
+client.connect(function (err) {
+    assert.equal(null, err);
+    console.log("Connected successfully to server");
+  
+    const db = client.db(dbName);
+  
+    client.close();
+});
+//////////////////////////
 const express = require('express');
 const app = express();
 const expressWs = require('express-ws')(app);
@@ -36,12 +51,12 @@ app.ws('/connect', (ws, req) => {
         console.log(Date(), 'Polling Data');
         requestData(processData);
         clearTimeout();
-    }, 5000);
+    }, 1000);
 
     setInterval(() => {
         console.log(Date(), 'Polling Data');
         requestData(processData);
-    }, 300000);
+    }, 20000);
 
     // function creates a new array of parced data
     const processData = data => {
