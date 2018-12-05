@@ -3,21 +3,37 @@ todo:
     kill poll timers when connection closes
 */
 
-//mongodb declarations////
-const MongoClient = require('mongodb').MongoClient;
-const assert = require('assert');
-const url = 'mongodb://inspire.gr.mhgi.net:27017';
-const dbName = 'cradlepointwatcher';
-const client = new MongoClient(url);
-client.connect(function (err) {
-    assert.equal(null, err);
-    console.log("Connected successfully to server");
-  
-    const db = client.db(dbName);
-  
-    client.close();
-});
-//////////////////////////
+// mongodb connection ////
+const mongoose = require('mongoose');
+mongoose
+    .connect(
+        'mongodb://inspire.gr.mhgi.net/cpw',
+        { useNewUrlParser: true }
+    )
+    .then(() => {
+        console.log('Database connection successful');
+    })
+    .catch(err => {
+        console.error('Database connection error');
+    });
+
+let deviceSchema = new mongoose.Schema(
+    {
+        name: String,
+        account: Number,
+        state: String,
+        conType: String,
+        date: Date
+    },
+    { versionKey: false }
+);
+
+let Device = mongoose.model('Device', deviceSchema);
+
+let _SERVER_CLOCK = 5000,
+    _DB_CLOCK = 30000,
+    _MAIN_CLOCK = 1000;
+
 const express = require('express');
 const app = express();
 const expressWs = require('express-ws')(app);
@@ -40,48 +56,56 @@ const options = {
 };
 // Fills deviceTemplateArray
 for (let i = 0; i < 500; i++) {
-    deviceTemplateArray.push({ name: ('00' + i).slice(-3), account: null });
+    deviceTemplateArray.push({ name: ('00' + i).slice(-3), account: null, state: null, contype: null, date: null });
 }
+
+let mainClock = setInterval(() => {
+    requestData(processData);
+}, 2000);
+
+let dbClock = setInterval(() => {
+    deviceTemplateArray.map((item, itemIndex) => {
+        if (item.account !== null) {
+            let thisItem = new Device(item);
+
+            thisItem.save((err, device) => {
+                err ? console.log(err) : null; //console.log(device);
+            });
+        }
+    });
+}, 60000);
 
 // webspucket route connector and main processing function
 app.ws('/connect', (ws, req) => {
-    console.log(Date(), ' client connected from ', req.connection.remoteAddress);
-
-    setTimeout(() => {
-        console.log(Date(), 'Polling Data');
-        requestData(processData);
-        clearTimeout();
-    }, 1000);
-
-    setInterval(() => {
-        console.log(Date(), 'Polling Data');
-        requestData(processData);
-    }, 20000);
-
-    // function creates a new array of parced data
-    const processData = data => {
-        data.map(datum => {
-            processedDeviceArray.push({
-                name: utils.nameParser(datum.name),
-                account: utils.accountParser(datum.account),
-                state: datum.state,
-                conType: utils.conType(datum.ipv4_address)
-            });
-        });
-        processedDeviceArray.map(item => (deviceTemplateArray[parseInt(item.name, 10)] = item));
+    //console.log(Date(), ' client connected from ', req.connection.remoteAddress);
+    let serverClock = setTimeout(() => {
         ws.send(JSON.stringify(deviceTemplateArray));
-    };
-
-    // callback function
-    const requestData = callback => {
-        request(options, (err, res, body) => {
-            if (err) {
-                console.log(Date(), err.message);
-            } else {
-                return callback(JSON.parse(body).data);
-            }
-        });
-    };
+    }, 5000);
 });
+
+// function creates a new array of parced data
+const processData = data => {
+    data.map(datum => {
+        processedDeviceArray.push({
+            name: utils.nameParser(datum.name),
+            account: utils.accountParser(datum.account),
+            state: datum.state,
+            conType: utils.conType(datum.ipv4_address),
+            date: Date()
+        });
+    });
+    processedDeviceArray.map(item => (deviceTemplateArray[parseInt(item.name, 10)] = item));
+};
+
+// callback function
+const requestData = callback => {
+    request(options, (err, res, body) => {
+        if (err) {
+            console.log(Date(), err.message);
+        } else {
+            return callback(JSON.parse(body).data);
+        }
+    });
+};
 
 app.listen(serverPort, () => console.log(`Starting server on port ${serverPort}`));
