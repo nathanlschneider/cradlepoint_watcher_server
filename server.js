@@ -77,7 +77,7 @@ let dbClock = setInterval(() => {
 
 // webspucket route connector and main processing function
 app.ws('/connect', (ws, req) => {
-    //console.log(Date(), ' client connected from ', req.connection.remoteAddress);
+    console.log(Date(), ' client connected from ', req.connection.remoteAddress); 
     let serverClock = setTimeout(() => {
         ws.send(JSON.stringify(deviceTemplateArray));
     }, 5000);
