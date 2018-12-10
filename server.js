@@ -65,11 +65,9 @@ for (let i = 0; i < 500; i++) {
 
 let mainClock = setInterval(() => {
     requestData(processData);
-    console.log('mainclock - tick');
-}, 2000);
+    }, 2000);
 
 let dbClock = setInterval(() => {
-    console.log('dbclock - tick');
     deviceTemplateArray.map((item, itemIndex) => {
         if (item.account !== null) {
             let thisItem = new Device(item);
@@ -86,11 +84,10 @@ app.ws('/connect', (ws, req) => {
     console.log(Date(), ' client connected from ', req.connection.remoteAddress); 
     let serverClock = setInterval(() => {    
         ws.send(JSON.stringify(deviceTemplateArray));
-        console.log('serverclock - tick');
     }, 5000);
 
     ws.on('close', () => {
-        console.log('connection closed');
+        console.log('connection closed', req.connection.remoteAddress);
         clearInterval(serverClock);
     })
 });
