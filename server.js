@@ -37,6 +37,7 @@ let _SERVER_CLOCK = 5000,
 const express = require('express');
 const app = express();
 const expressWs = require('express-ws')(app);
+const path = require('path');
 const request = require('request');
 const utils = require('./utils.js'); // nameParser, conType, accountParser
 const serverPort = 5556;
@@ -54,6 +55,9 @@ const options = {
         'Content-Type': 'application/json'
     }
 };
+
+app.use(express.static(path.join(__dirname, 'build')));
+
 // Fills deviceTemplateArray
 for (let i = 0; i < 500; i++) {
     deviceTemplateArray.push({ name: ('00' + i).slice(-3), account: null, state: null, contype: null, date: null });
@@ -61,9 +65,11 @@ for (let i = 0; i < 500; i++) {
 
 let mainClock = setInterval(() => {
     requestData(processData);
+    console.log('mainclock - tick');
 }, 2000);
 
 let dbClock = setInterval(() => {
+    console.log('dbclock - tick');
     deviceTemplateArray.map((item, itemIndex) => {
         if (item.account !== null) {
             let thisItem = new Device(item);
@@ -78,11 +84,13 @@ let dbClock = setInterval(() => {
 // webspucket route connector and main processing function
 app.ws('/connect', (ws, req) => {
     console.log(Date(), ' client connected from ', req.connection.remoteAddress); 
-    let serverClock = setTimeout(() => {    
-            ws.send(JSON.stringify(deviceTemplateArray));
+    let serverClock = setInterval(() => {    
+        ws.send(JSON.stringify(deviceTemplateArray));
+        console.log('serverclock - tick');
     }, 5000);
 
     ws.on('close', () => {
+        console.log('connection closed');
         clearInterval(serverClock);
     })
 });
