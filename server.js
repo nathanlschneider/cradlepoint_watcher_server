@@ -1,9 +1,3 @@
-/*
-todo:
-    kill poll timers when connection closes
-*/
-
-// mongodb connection ////
 const mongoose = require('mongoose');
 mongoose
     .connect(
@@ -104,6 +98,7 @@ const processData = data => {
         });
     });
     processedDeviceArray.map(item => (deviceTemplateArray[parseInt(item.name, 10)] = item));
+    processedDeviceArray = [];
 };
 
 // callback function

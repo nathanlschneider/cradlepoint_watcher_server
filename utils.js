@@ -1,6 +1,7 @@
 var exports = module.exports = {};
 
 exports.nameParser = (data) => {
+    
     let data2 = data.replace(/\D/g, '');
     let data3 = data2.replace(/^0+/g, '');
     if (data3.length === 1) {
